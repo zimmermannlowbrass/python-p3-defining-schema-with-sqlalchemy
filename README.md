@@ -90,6 +90,25 @@ session.bulk_save_objects([ffvii, mk8])
 session.commit()
 ```
 
+<details>
+  <summary>
+    <em><code>bulk_save_objects</code> is a useful method, but it doesn't
+        carry out all the same tasks as <code>add</code>. What attributes will
+        <code>botw</code> have that <code>ffvii</code> and <code>mk8</code>
+        are still missing?</em>
+  </summary>
+
+  <h3><code>id</code> and timestamps.</h3>
+  <p><code>bulk_save_objects</code> does not return any new data from the
+     records it creates.</p>
+  <p>You can set the keyword argument <code>return_defaults=True</code> to get
+     IDs and other automatically assigned attributes, but this requires
+     SQLAlchemy to execute statements for each record individually.</p>
+  <p>Make sure to think about the features that you need before you pick which
+     CRUD methods to use!</p>
+</details>
+<br/>
+
 Since these records are saved in the database rather than in Python's memory, we
 know that even after we exit the `ipdb` shell, we'll still be able to retrieve
 this data.
@@ -117,126 +136,186 @@ instructions we can use:
 
 ***
 
-## Defining Tables via SQLAlchemy ORM
+## Using the `seed.py` File
 
-Creating tables with SQLAlchemy ORM requires classes with four key traits:
-
-1. Inheritance from a `declarative_base` object.
-2. A `__tablename__` class attribute.
-3. One or more `Column`s as class attributes.
-4. A `Column` specified to be the table's primary key.
-
-Let's take a look at a class to define a `students` table:
+To use the `seed.py` file to add data to the database, all we need to do is
+write code that uses SQLAlchemy methods to create new records. Add this to
+the `app/seed.py` file below the creation of the `session` object:
 
 ```py
-# sqlalchemy_sandbox.py
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+# db/seed.py
 
-Base = declarative_base()
+...
 
-class Student(Base):
-    __tablename__ = 'students'
+botw = Game(title="Breath of the Wild", platform="Switch", genre="Adventure", price=60)
+ffvii = Game(title="Final Fantasy VII", platform="Playstation", genre="RPG", price=30)
+mk8 = Game(title="Mario Kart 8", platform="Switch", genre="Racing", price=50)
 
-    student_id = Column(Integer(), primary_key=True)
-    student_name = Column(String())
+session.bulk_save_objects([botw, ffvii, mk8])
+session.commit()
 ```
 
-The `declarative_base` combines a container for table metadata as well as a
-group of methods that act as mappers between Python and our SQL database.
-Inheritance from `Base`, a `declarative_base` object, allows us to avoid
-rewriting code.
+To run this code, simply run `python db/seed.py`. You should not see any output
+if it executes without error.
+
+Run the `debug.py` script again to enter an `ipdb` shell.
+
+```py
+session.query(Game).count()
+# => 3
+session.query(Game)[-1]
+# => Game(id=3, title="Mario Kart 8", platform="Switch)"
+```
+
+Awesome! Exit out of the console.
+
+What happens if we want to add some more data to the database? Well, we could
+try adding another `add` call in our `app/seed.py` file:
+
+```py
+# py/seed.py
+
+botw = Game(title="Breath of the Wild", platform="Switch", genre="Adventure", price=60)
+ffvii = Game(title="Final Fantasy VII", platform="Playstation", genre="RPG", price=30)
+mk8 = Game(title="Mario Kart 8", platform="Switch", genre="Racing", price=50)
+ccs = Game(title="Candy Crush Saga", platform="Mobile", genre="Puzzle", price=0)
+```
+
+Run the seed file again, and let's see our updated data:
+
+```py
+session.query(Game)[-1]
+# => Game(id=7, title="Candy Crush Saga", platform="Mobile)"
+session.query(Game).count()
+# => 7
+```
+
+Hmm, we only added four games in the `db/seed.py` file: why are there now seven
+games in the database? Well, remember — every time we run `app/seed.py`, we are
+creating **new** records in the `games` table. There's nothing stopping our code
+from producing duplicate data in the database. We're just instructing SQLAlchemy
+to create new code using this file!
+
+We can modify our seed file to clear our database before each new seed to avoid
+this complication in the future. Add these commands right after the
+instantiation of your `session` (but before the creation of any new records):
+
+```py
+session.delete(Game)
+session.commit()
+```
+
+These commands remove the data from the `games` table and then re-run the
+seed file. It's handy if you want to start fresh! Just be cautious factoring
+this into a seed file, because it will inevitably remove all of your data.
+
+We can now see our fresh database with just four records in the `games` table, as
+intended. Run `python debug.py`:
+
+```py
+session.query(Game).count()
+# => 4
+```
+
+***
+
+## Generating Randomized Data
+
+One challenge of seeding a database is thinking up lots of sample data.
+Ultimately, when you're developing an application, it's helpful to have
+realistic data, but the actual content is not so important.
+
+One tool that can be used to help generate a lot of realistic randomized data is
+the [Faker library][faker]. This library is already included in the Pipfile for
+this application, so we can try it out. Run `python debug.py`, and try
+out some Faker methods:
+
+```py
+fake = Faker()
+fake.name()
+# => 'Samantha Taylor'
+fake.name()
+# => 'Connie Ferguson'
+fake.name()
+# => 'Christopher Ortega'
+```
+
+As you can see, every time we call the `name` method, we get a new random name.
+Faker has a lot of [built-in randomized data generators][faker] that you can use:
+
+```py
+fake.email()
+# =>'hubbardpatricia@example.com'
+fake.color()
+# => '#7148af'
+fake.profile()
+# => {'job': 'Garment/textile technologist', 'company': 'Jones PLC', 'ssn': '768-52-6547', 'residence': '7571 Michael Coves\nNorth Daniel, VA 39350', 'current_location': (Decimal('-30.883927'), Decimal('65.589098')), 'blood_group': 'O-', 'website': ['http://www.grimes.org/', 'http://sanders.net/', 'https://manning-cowan.info/', 'https://www.sims-smith.info/'], 'username': 'julia98', 'name': 'Jillian Morris', 'sex': 'F', 'address': 'USNS Brown\nFPO AA 04021', 'mail': 'james05@yahoo.com', 'birthdate': datetime.date(1990, 6, 20)}
+```
+
+Let's use Faker to generate 50 random games (we will use the random library to
+generate prices). Replace the data after our data deletion in the `seed.py`
+file with the following code:
+
+```py
+# Add a console message so we can see output when the seed file runs
+print("Seeding games...")
+
+games = [
+    Game(
+        title=fake.name(),
+        genre=fake.word(),
+        platform=fake.word(),
+        price=random.randint(0, 60)
+    )
+for i in range(50)]
+
+session.bulk_save_objects(games)
+session.commit()
+```
 
 <details>
   <summary>
-    <em>Is <code>Base</code> a parent or child object?</em>
+    <em>What do we call the syntax that we used to create the <code>games</code>
+        variable?</em>
   </summary>
 
-  <h3>A parent.</h3>
-  <p>Just as in real life, children in Python inherit from their parents.</p>
+  <h3>List Interpretation.</h3>
+  <p>Interpretations allow us to create lists without using loops. They're a
+     powerful staple of Python code, so make sure you don't forget!</p>
 </details>
 <br/>
 
-The `__tablename__` attribute will eventually be used as the name of our SQL
-database table. The table's columns are identified using `Column` objects as
-attributes- the optional `primary_key` argument tells SQLAlchemy that
-`student_id` will be the primary key for the `students` table.
-
-This type of class is called a **data model**, or **model**.
-
-## Persisting the Schema
-
-We have all of the data we need to generate a database table, but it won't
-happen as soon as we save our module. We need to execute a series of Python
-statements to do **persist** our schema. You can do this from the Python shell,
-but we will be using a script for this exercise.
+Then, run `python app/seed.py` to reseed the database:
 
 ```py
-#!/usr/bin/env python3
-
-# imports
-from sqlalchemy import create_engine
-
-# data models
-
-engine = create_engine('sqlite:///db/students.db')
-Base.metadata.create_all(engine)
+session.query(Game).count()
+# => 50
+session.query(Game).first()
+# => Game(id=1, title="Lisa Barton", platform="hotel)"
+session.query(Game)[-1]
+# => Game(id=50, title="Jesus Anderson", platform="meeting)"
 ```
 
-Now run `chmod +x lib/sqlalchemy_sandbox.py` to make the script executable.
-Run `lib/sqlalchemy_sandbox.py` from your Pipenv shell and you should see that
-a `students.db` has popped up in the `db` directory with a `students` table.
-
-Just as with using the `sqlite3` Python module on its own, we need to start by
-creating a connection to the database. The engine is "home base" for the
-database- everything on the database side and the Python side must pass through
-the engine for the process to count. Here, we're pointing to a local sqlite
-file where our tables will be created.
-
-The `create_all()` command on the next line tells the engine that any models
-that were created using `Base` as a parent should be used to create tables. if
-you open `students.db` in VSCode, you should see that a table exists with two
-columns: `student_id` and `student_name`.
-
-### Improving our Script
-
-While inclusion of the shebang is enough to tell the interpreter that a module
-should be interpreted as a script, this presents a conundrum for larger
-projects: _how does this affect `import` statements?_
-
-As it turns out, the interpreter gets a bit confused when an `import` statement
-encounters a script. As written above, `Base.metadata.create_all(engine)` would
-be run before the code of any module that imported `sqlalchemy_sandbox.py`.
-There's a trick to avoid this:
-
-```py
-if __name__ == '__main__':
-    engine = create_engine('sqlite:///db/students.db')
-    Base.metadata.create_all(engine)
-```
-
-`__name__` is an attribute possessed by modules that is assigned at runtime. It
-is assigned the value `'__main__'` if the module is the main program; that is,
-the one that you called from the command line.
-
-Refactoring any scripted elements of our modules to fit into this block makes
-sure that the script only runs when we tell it to.
+Great! Now we've got plenty of seed data to work with, and an easy way for
+ourselves or other developers to populate the database any time we need to do
+so.
 
 ***
 
 ## Conclusion
 
-You should know now how to define and persist a simple schema using SQLAlchemy.
-In the next lesson, we will explore how to create, read, update, and delete
-records with SQLAlchemy ORM.
+In this lesson, we learned the importance of having a seed file along with our
+database migrations in order for ourselves and other developers to quickly set
+up the database with sample data. We also learned how to use the Faker library
+to quickly generate randomized seed data.
 
 ***
 
 ## Resources
 
 - [SQLAlchemy ORM Documentation][sqlaorm]
-- [6. Defining Schema with SQLAlchemy ORM - O'Reilly](https://learning.oreilly.com/library/view/essential-sqlalchemy-2nd/9781491916544/ch06.html)
+- [Faker Documentation][faker]
+- [random — Generate pseudo-random numbers - Python](https://docs.python.org/3/library/random.html)
 
-[sqla]: https://www.sqlalchemy.org/
-[sqlacore]: https://docs.sqlalchemy.org/en/14/core/
+[faker]: https://faker.readthedocs.io/en/master/index.html]
 [sqlaorm]: https://docs.sqlalchemy.org/en/14/orm/
