@@ -1,6 +1,7 @@
 ---
 :lessons:
-- :id: 204327
+
+- :id: 210104
   :course_id: 5935
-  :canvas_url: https://learning.flatironschool.com/courses/5935/assignments/204327
-  :type: assignment
+  :canvas_url: https://learning.flatironschool.com/courses/5935/pages/defining-a-schema-with-sqlalchemy-orm
+  :type: page
