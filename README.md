@@ -28,9 +28,9 @@ To save themselves and others this headache, a team of developers built the
 [SQLAlchemy][sqla] Python package.
 
 In this lesson, we'll read about how to have SQLAlchemy link our Python classes
-with a database table. There's code in the `sqlalchemy_sandbox.py` file set up so
-you can follow along with the examples below. Fork and clone this lesson if
-you'd like to code along.
+with a database table. There's code in the `lib/sqlalchemy_sandbox.py` file set
+up so you can follow along with the examples below. Fork and clone this lesson
+if you'd like to code along.
 
 > **Note**: You'll never write all the code for your SQLAlchemy applications
 > in one file like we're doing here — the setup here is kept intentionally as
@@ -70,7 +70,7 @@ Creating tables with SQLAlchemy ORM requires classes with four key traits:
 Let's take a look at a class to define a `students` table:
 
 ```py
-# sqlalchemy_sandbox.py
+# lib/sqlalchemy_sandbox.py
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -113,6 +113,8 @@ statements to do **persist** our schema. You can do this from the Python shell,
 but we will be using a script for this exercise.
 
 ```py
+# lib/sqlalchemy_sandbox.py
+
 #!/usr/bin/env python3
 
 # imports
@@ -177,7 +179,9 @@ records with SQLAlchemy ORM.
 
 - [SQLAlchemy ORM Documentation][sqlaorm]
 - [6. Defining Schema with SQLAlchemy ORM - O'Reilly](https://learning.oreilly.com/library/view/essential-sqlalchemy-2nd/9781491916544/ch06.html)
+- [Object-relational mapping - Wikipedia](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping)
 
+[orm]: https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping
 [sqla]: https://www.sqlalchemy.org/
 [sqlacore]: https://docs.sqlalchemy.org/en/14/core/
 [sqlaorm]: https://docs.sqlalchemy.org/en/14/orm/
