@@ -129,13 +129,13 @@ from sqlalchemy import create_engine
 
 # data models
 
-engine = create_engine('sqlite:///db/students.db')
+engine = create_engine('sqlite:///students.db')
 Base.metadata.create_all(engine)
 ```
 
 Now run `chmod +x lib/sqlalchemy_sandbox.py` to make the script executable.
 Run `lib/sqlalchemy_sandbox.py` from your Pipenv shell and you should see that
-a `students.db` has popped up in the `db` directory with a `students` table.
+a `students.db` has popped up with a `students` table.
 
 Just as with using the `sqlite3` Python module on its own, we need to start by
 creating a connection to the database. The engine is "home base" for the
@@ -161,7 +161,7 @@ There's a trick to avoid this:
 
 ```py
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///db/students.db')
+    engine = create_engine('sqlite:///students.db')
     Base.metadata.create_all(engine)
 ```
 
