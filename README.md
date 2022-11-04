@@ -86,8 +86,8 @@ Base = declarative_base()
 class Student(Base):
     __tablename__ = 'students'
 
-    student_id = Column(Integer(), primary_key=True)
-    student_name = Column(String())
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
 ```
 
 The `declarative_base` combines a container for table metadata as well as a
@@ -108,7 +108,7 @@ rewriting code.
 The `__tablename__` attribute will eventually be used as the name of our SQL
 database table. The table's columns are identified using `Column` objects as
 attributes- the optional `primary_key` argument tells SQLAlchemy that
-`student_id` will be the primary key for the `students` table.
+`id` will be the primary key for the `students` table.
 
 This type of class is called a **data model**, or **model**.
 
@@ -146,7 +146,7 @@ file where our tables will be created.
 The `create_all()` command on the next line tells the engine that any models
 that were created using `Base` as a parent should be used to create tables. if
 you open `students.db` in VSCode, you should see that a table exists with two
-columns: `student_id` and `student_name`.
+columns: `id` and `name`.
 
 ### Improving our Script
 
@@ -181,6 +181,27 @@ In the next lesson, we will explore how to create, read, update, and delete
 records with SQLAlchemy ORM.
 
 ***
+
+## Solution Code
+
+```py
+# lib/sqlalchemy_sandbox.py
+
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Student(Base):
+    __tablename__ = 'students'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///students.db')
+    Base.metadata.create_all(engine)
+```
 
 ## Resources
 
