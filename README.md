@@ -2,7 +2,7 @@
 
 ## Learning Goals
 
-- Use SQLAlchemy to simplify tasks from ORM and Advanced ORM.
+- Use an external library to simplify tasks from earlier ORM lessons.
 
 ***
 
