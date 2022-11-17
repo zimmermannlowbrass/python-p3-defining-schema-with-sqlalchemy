@@ -129,8 +129,10 @@ from sqlalchemy import create_engine
 
 # data models
 
-engine = create_engine('sqlite:///students.db')
-Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///students.db')
+    Base.metadata.create_all(engine)
+
 ```
 
 Now run `chmod +x lib/sqlalchemy_sandbox.py` to make the script executable.
@@ -147,30 +149,6 @@ The `create_all()` command on the next line tells the engine that any models
 that were created using `Base` as a parent should be used to create tables. if
 you open `students.db` in VSCode, you should see that a table exists with two
 columns: `id` and `name`.
-
-### Improving our Script
-
-While inclusion of the shebang is enough to tell the interpreter that a module
-should be interpreted as a script, this presents a conundrum for larger
-projects: _how does this affect `import` statements?_
-
-As it turns out, the interpreter gets a bit confused when an `import` statement
-encounters a script. As written above, `Base.metadata.create_all(engine)` would
-be run before the code of any module that imported `sqlalchemy_sandbox.py`.
-There's a trick to avoid this:
-
-```py
-if __name__ == '__main__':
-    engine = create_engine('sqlite:///students.db')
-    Base.metadata.create_all(engine)
-```
-
-`__name__` is an attribute possessed by modules that is assigned at runtime. It
-is assigned the value `'__main__'` if the module is the main program; that is,
-the one that you called from the command line.
-
-Refactoring any scripted elements of our modules to fit into this block makes
-sure that the script only runs when we tell it to.
 
 ***
 

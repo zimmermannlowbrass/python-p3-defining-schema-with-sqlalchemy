@@ -7,3 +7,6 @@ Base = declarative_base()
 
 class Student(Base):
     pass
+
+if __name__ == '__main__':
+    pass
